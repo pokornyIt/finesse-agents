@@ -79,7 +79,7 @@ jobs:
       - name: Create directory
         run: |
           mkdir -p ${BUILD_ARTIFACTS_FOLDER}
-          cp -r LICENSE README.md config.yml ${{ env.BUILD_ARTIFACTS_FOLDER }}/
+          cp -r LICENSE README.md ${{ env.BUILD_ARTIFACTS_FOLDER }}/
 
       - name: Build
         run: go build -v -o "${{ env.BUILD_ARTIFACTS_FOLDER }}/${{ env.BINARY_NAME }}${{ env.BINARY_EXT }}" -ldflags="-X 'main.Version=${{ env.APP_VERSION }}' -X 'main.BuildDate=${{ env.BUILD_TIME }}' -X 'main.Branch=${{ github.ref }}' -X 'main.Revision=${{ github.SHA }}' -X 'main.BuildUser=${{ env.BUILD_USER }}'" .
