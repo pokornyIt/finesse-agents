@@ -1,0 +1,43 @@
+name: Test
+
+on:
+  push:
+    tags:
+      - v*
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Test-Build
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.15
+        id: go
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+
+      - name: Get dependencies
+        run: |
+          go get -v -t -d ./...
+
+      - name: Setup environment
+        run: |
+          echo APP_VERSION=$(basename ${GITHUB_REF}) >> $GITHUB_ENV
+          echo BUILD_TIME=$(date -u +"%Y%m%d-%H:%M:%S") >> $GITHUB_ENV
+          echo BUILD_USER=$(echo ${GITHUB_ACTOR}@${HOSTNAME}) >> $GITHUB_ENV
+
+      - name: Environment Printer
+        uses: managedkaos/print-env@v1.0
+
+      - name: Build
+        run: go build -v -ldflags="-X 'main.Version=${{ env.APP_VERSION }}' -X 'main.BuildDate=${{ env.BUILD_TIME }}' -X 'main.Branch=${{ github.ref }}' -X 'main.Revision=${{ github.SHA }}' -X 'main.BuildUser=${{ env.BUILD_USER }}'" .
+
+      - name: Test
+        run: go test --version .
