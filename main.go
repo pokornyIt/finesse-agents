@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"runtime/debug"
+	"strings"
 	"time"
 )
 
@@ -18,6 +20,7 @@ var (
 	Branch    string // for build data
 	BuildUser string // for build data
 	BuildDate string // for build data
+	f         *os.File
 )
 
 func setupLog() *os.File {
@@ -37,6 +40,7 @@ func setupLog() *os.File {
 		f = nil
 	}
 	log.SetLevel(logConfig.GetLevel())
+	log.SetReportCaller(true)
 	return f
 }
 
@@ -83,9 +87,36 @@ func versionToString() string {
 
 func main() {
 	var err error
-	retCode := 0
+	retCode := 5
 	ts := time.Now()
 	defer func() {
+		r := recover()
+		if r != nil {
+			retCode = 5
+			l := string(debug.Stack())
+			sep := "\n"
+			list := strings.Split(l, sep)
+			var sh []string
+			store := len(list) - 1
+			for i, s := range list {
+				if i == 0 {
+					sh = append(sh, s)
+				}
+				if strings.HasPrefix(s, "panic") {
+					store = i + 1
+					continue
+				}
+				if i > store {
+					sh = append(sh, s)
+				}
+			}
+			log.Errorf("%s", r)
+			log.Errorf("%s", l)
+			fmt.Printf("\r\n%s - %s", r, strings.Join(sh, sep))
+		}
+		if f != nil {
+			_ = f.Close()
+		}
 		fmt.Printf("\n\rprogram run %v\n\r", Timespan(time.Since(ts)).Format("15:04:05.000"))
 		os.Exit(retCode)
 	}()
@@ -103,10 +134,7 @@ func main() {
 	}
 
 	// setup log
-	f := setupLog()
-	if f != nil {
-		defer func() { _ = f.Close() }()
-	}
+	f = setupLog()
 
 	err = Validate(command)
 	if err != nil {
@@ -122,6 +150,5 @@ func main() {
 	} else if command == srvApp.FullCommand() {
 		finesseSelectCmd()
 	}
-	// await before ends to made time finish all output data
-	time.Sleep(10)
+	time.Sleep(10 * time.Millisecond)
 }
