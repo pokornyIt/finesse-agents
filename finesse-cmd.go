@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/csv"
 	"fmt"
 	api "github.com/pokornyIt/finesse-api"
@@ -26,6 +27,7 @@ func finesseSelectCmd() int {
 		log.Debugf("collect status for agents [%d]", len(server.GetAgentsList()))
 		states, err = server.GetStateAgentsParallel()
 		printStates("Agent statuses:", states)
+		finalFinesseMessage()
 		break
 	case "login":
 		log.Debugf("login agents [%d]", len(server.GetAgentsList()))
@@ -78,12 +80,12 @@ func finesseSelectCmd() int {
 }
 
 func collectAgents() error {
-	file, err := os.Open(agentGroupConfig.FileName)
+	file, err := os.ReadFile(agentGroupConfig.FileName)
 	if err != nil {
 		return err
 	}
-	defer func() { _ = file.Close() }()
-	reader := csv.NewReader(file)
+	file = bytes.Trim(file, "\xef\xbb\xbf")
+	reader := csv.NewReader(bytes.NewReader(file))
 	reader.Comma = agentGroupConfig.GetDivider()
 
 	data, err := reader.ReadAll()
@@ -119,7 +121,7 @@ func (a CsvAgent) Valid() bool {
 }
 
 func finalFinesseMessage() {
-	o := fmt.Sprintf("operation [%s] finish sucess for all [%d] agents", srvApp.FullCommand(), len(server.GetAgentsList()))
+	o := fmt.Sprintf("%s operation [%s] finish sucess for all [%d] agents", srvApp.FullCommand(), agentGroupConfig.Operation, len(server.GetAgentsList()))
 	log.Info(o)
 	fmt.Println(o)
 

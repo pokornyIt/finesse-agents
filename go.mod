@@ -3,7 +3,7 @@ module finesse-agents
 go 1.19
 
 require (
-	github.com/pokornyIt/finesse-api v0.1.0
+	github.com/pokornyIt/finesse-api v0.2.0
 	github.com/sirupsen/logrus v1.9.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 )
