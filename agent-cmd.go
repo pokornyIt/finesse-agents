@@ -41,7 +41,7 @@ func agentSelectOperation() int {
 			ret = agentErrorMessage(fmt.Sprintf("problem collect agent actual status for agent [%s]", agentConfig.Name))
 			break
 		}
-		agentFinalState(agent, "", "")
+		agentFinalState(agent)
 		break
 	case "login":
 		log.Debugf("LOGIN agent [%s]", agentConfig.Name)
@@ -49,14 +49,14 @@ func agentSelectOperation() int {
 		if opErr.Error != nil {
 			ret = agentErrorMessage(fmt.Sprintf("problem log in agent [%s]", agentConfig.Name), "agent not logged in")
 		} else {
-			agentFinalState(agent, "login success, but ", "")
+			agentFinalState(agent)
 		}
 		break
 	case "ready":
 		log.Debugf("set READY agent [%s]", agentConfig.Name)
 		opErr = agent.Ready(serverConfig.Force)
 		if opErr.Error == nil {
-			agentFinalState(agent, "agent ready success, but ", "")
+			agentFinalState(agent)
 		} else {
 			ret = agentErrorMessage(fmt.Sprintf("problem set agent [%s] to ready state", agentConfig.Name))
 		}
@@ -65,7 +65,7 @@ func agentSelectOperation() int {
 		log.Debugf("set NOT-READY agent [%s]", agentConfig.Name)
 		opErr = agent.NotReady()
 		if opErr.Error == nil {
-			agentFinalState(agent, "NOT-READY success, but ", "")
+			agentFinalState(agent)
 		} else {
 			ret = agentErrorMessage(fmt.Sprintf("problem set agent to not-ready state [%s]", agentConfig.Name))
 		}
@@ -74,7 +74,7 @@ func agentSelectOperation() int {
 		log.Debugf("logout agent [%s]", agentConfig.Name)
 		opErr = agent.Logout(serverConfig.Force)
 		if opErr.Error == nil {
-			agentFinalState(agent, "LOGOUT success, but ", "")
+			agentFinalState(agent)
 		} else {
 			ret = agentErrorMessage(fmt.Sprintf("problem logout agent [%s]", agentConfig.Name), "agent not logged in")
 		}
@@ -87,7 +87,7 @@ func agentSelectOperation() int {
 	return ret
 }
 
-func agentFinalState(agent *api.Agent, prefixError string, suffixError string) {
+func agentFinalState(agent *api.Agent) {
 	status := agent.GetLastStatus()
 	o := fmt.Sprintf("agent [%s] actual status [%s], pending state [%s]", agentConfig.Name, status.State, status.PendingState)
 	log.Info(o)

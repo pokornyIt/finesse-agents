@@ -63,10 +63,6 @@ var (
 
 func init() {
 	kingpin.Flag("server", "finesse server name or IP address").Short('s').PlaceHolder("finesse.server.local").Default("").StringVar(&serverConfig.FinesseServer)
-	//kingpin.Flag("port", "finesse API port").Short('p').PlaceHolder(strconv.Itoa(DefaultPort)).
-	//	HintOptions("443", "8443", strconv.Itoa(DefaultPort)).Default(strconv.Itoa(DefaultPort)).IntVar(&serverConfig.FinessePort)
-	//kingpin.Flag("xmpp-port", "finesse XMPP port").Short('x').PlaceHolder(strconv.Itoa(DefaultXmppPort)).
-	//	HintOptions("5222", strconv.Itoa(DefaultXmppPort)).Default(strconv.Itoa(DefaultXmppPort)).IntVar(&serverConfig.FinesseXmppPort)
 	kingpin.Flag("force", "force operation").Short('f').Default("false").BoolVar(&serverConfig.Force)
 	kingpin.Flag("ignore-security-check", "ignore HTTPS security check").Short('i').Default("false").BoolVar(&serverConfig.IgnoreCertificateProblem)
 	kingpin.Flag("insecure-xmpp", "use insecure connection to XMPP, need change XMPP port to 5222").Default("false").BoolVar(&serverConfig.InsecureConnect)
@@ -89,12 +85,6 @@ func init() {
 
 func (f *FinesseServerConfig) Validate() error {
 	err := f.serverValid()
-	//if err == nil {
-	//	err = f.portValid()
-	//}
-	//if err == nil {
-	//	err = f.xmppPortValid()
-	//}
 	return err
 }
 
@@ -107,20 +97,6 @@ func (f *FinesseServerConfig) serverValid() error {
 	}
 	return nil
 }
-
-//func (f *FinesseServerConfig) portValid() error {
-//	if f.FinessePort < 1025 || f.FinessePort > 65535 {
-//		return fmt.Errorf("finesse port os out of valid range 1024 - 65536 <%d> ", f.FinessePort)
-//	}
-//	return nil
-//}
-
-//func (f *FinesseServerConfig) xmppPortValid() error {
-//	if f.FinesseXmppPort < 1025 || f.FinesseXmppPort > 65536 {
-//		return fmt.Errorf("finesse XMPP port os out of valid range 1024 - 65536 <%d> ", f.FinesseXmppPort)
-//	}
-//	return nil
-//}
 
 func (f *FinesseServerConfig) sprint() string {
 	m := errMsg{Msg: ""}
