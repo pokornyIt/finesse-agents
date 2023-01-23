@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	server    *api.FinesseServer
+	server    *api.Server
 	Version   string // for build data
 	Revision  string // for build data
 	Branch    string // for build data
@@ -87,12 +87,12 @@ func versionToString() string {
 
 func main() {
 	var err error
-	retCode := 5
+	retCode := ExitSuccess
 	ts := time.Now()
 	defer func() {
 		r := recover()
 		if r != nil {
-			retCode = 5
+			retCode = ExitPanic
 			l := string(debug.Stack())
 			sep := "\n"
 			list := strings.Split(l, sep)
@@ -103,8 +103,7 @@ func main() {
 					sh = append(sh, s)
 				}
 				if strings.HasPrefix(s, "panic") {
-					store = i + 1
-					continue
+					store = i - 1
 				}
 				if i > store {
 					sh = append(sh, s)
@@ -139,16 +138,20 @@ func main() {
 	err = Validate(command)
 	if err != nil {
 		fmt.Printf("problem with application configuration\r\n\t%s", err)
-		retCode = 1
+		retCode = ExitConfigurationProblem
 		return
 	}
 
 	log.Infof("Program start (version: %s, branch: %s, build date: %s", Version, Branch, BuildDate)
-	server = api.NewFinesseServer(serverConfig.FinesseServer, serverConfig.FinessePort)
+	if serverConfig.InsecureConnect {
+		server = api.NewServerDetail(serverConfig.FinesseServer, api.DefaultServerHttpsPort, true, api.DefaultServerDirectXmppPort, true, api.DefaultServerTimeout)
+	} else {
+		server = api.NewServer(serverConfig.FinesseServer, serverConfig.IgnoreCertificateProblem)
+	}
 	if command == agApp.FullCommand() {
-		agentSelectOperation()
+		retCode = agentSelectOperation()
 	} else if command == srvApp.FullCommand() {
-		finesseSelectCmd()
+		retCode = finesseSelectCmd()
 	}
 	time.Sleep(10 * time.Millisecond)
 }
