@@ -7,20 +7,19 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"regexp"
-	"strconv"
 	"strings"
 	"unicode/utf8"
 )
 
 const (
-	DefaultPort     = 8445
 	DefaultFileName = "agents.csv"
 )
 
 type FinesseServerConfig struct {
-	FinesseServer string
-	FinessePort   int
-	Force         bool
+	FinesseServer            string
+	Force                    bool
+	IgnoreCertificateProblem bool
+	InsecureConnect          bool
 }
 
 type AgentConfig struct {
@@ -64,8 +63,9 @@ var (
 
 func init() {
 	kingpin.Flag("server", "finesse server name or IP address").Short('s').PlaceHolder("finesse.server.local").Default("").StringVar(&serverConfig.FinesseServer)
-	kingpin.Flag("port", "finesse API port").Short('p').PlaceHolder(strconv.Itoa(DefaultPort)).HintOptions("443", "8443", strconv.Itoa(DefaultPort)).Default(strconv.Itoa(DefaultPort)).IntVar(&serverConfig.FinessePort)
 	kingpin.Flag("force", "force operation").Short('f').Default("false").BoolVar(&serverConfig.Force)
+	kingpin.Flag("ignore-security-check", "ignore HTTPS security check").Short('i').Default("false").BoolVar(&serverConfig.IgnoreCertificateProblem)
+	kingpin.Flag("insecure-xmpp", "use insecure connection to XMPP, need change XMPP port to 5222").Default("false").BoolVar(&serverConfig.InsecureConnect)
 	kingpin.Flag("level", "define logger level (error, warning, info, debug, trace)").Short('l').Default("error").
 		EnumVar(&logConfig.Level, "error", "err", "e", "warning", "warn", "w", "info", "i", "debug", "deb", "d", "trace", "trc", "t")
 	kingpin.Flag("directory", "define alternative directory for store logs").Short('D').Default("").StringVar(&logConfig.Folder)
@@ -85,9 +85,6 @@ func init() {
 
 func (f *FinesseServerConfig) Validate() error {
 	err := f.serverValid()
-	if err == nil {
-		err = f.portValid()
-	}
 	return err
 }
 
@@ -101,19 +98,15 @@ func (f *FinesseServerConfig) serverValid() error {
 	return nil
 }
 
-func (f *FinesseServerConfig) portValid() error {
-	if f.FinessePort < 1025 || f.FinessePort > 65535 {
-		return fmt.Errorf("finesse port os out of valid range 1024 - 65536 <%d> ", f.FinessePort)
-	}
-	return nil
-}
-
 func (f *FinesseServerConfig) sprint() string {
 	m := errMsg{Msg: ""}
 	a := "Server setup"
-	a = fmt.Sprintf("%s\r\n\tServer         [%s]%s", a, f.FinesseServer, m.marker(f.serverValid()))
-	a = fmt.Sprintf("%s\r\n\tPort           [%d]%s", a, f.FinessePort, m.marker(f.portValid()))
-	a = fmt.Sprintf("%s\r\n\tForce          [%t]", a, f.Force)
+	a = fmt.Sprintf("%s\r\n\tServer                        [%s]%s", a, f.FinesseServer, m.marker(f.serverValid()))
+	a = fmt.Sprintf("%s\r\n\tPort                          [%d]", a, api.DefaultServerHttpsPort)
+	a = fmt.Sprintf("%s\r\n\tXMPP Port                     [%d]", a, api.DefaultServerXmppPort)
+	a = fmt.Sprintf("%s\r\n\tForce                         [%t]", a, f.Force)
+	a = fmt.Sprintf("%s\r\n\tIgnore Certificate problem    [%t]", a, f.IgnoreCertificateProblem)
+	a = fmt.Sprintf("%s\r\n\tInsecure XMPP                 [%t]", a, f.InsecureConnect)
 
 	return a + m.message()
 }
