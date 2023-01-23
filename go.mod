@@ -3,7 +3,7 @@ module finesse-agents
 go 1.19
 
 require (
-	github.com/pokornyIt/finesse-api v0.0.0
+	github.com/pokornyIt/finesse-api v1.0.0
 	github.com/sirupsen/logrus v1.9.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 )
@@ -18,5 +18,3 @@ require (
 	gosrc.io/xmpp v0.5.1 // indirect
 	nhooyr.io/websocket v1.6.5 // indirect
 )
-
-replace github.com/pokornyIt/finesse-api => ../finesse-api
