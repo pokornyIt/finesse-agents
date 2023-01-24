@@ -66,7 +66,7 @@ var (
 func init() {
 	kingpin.Flag("server", "finesse server name or IP address").Short('s').PlaceHolder("finesse.server.local").Default("").StringVar(&serverConfig.FinesseServer)
 	kingpin.Flag("force", "force operation").Short('f').Default("false").BoolVar(&serverConfig.Force)
-	kingpin.Flag("port", "port for API connection").Short('p').Default(strconv.Itoa(api.DefaultServerHttpsPort)).HintOptions("433", "8443", strconv.Itoa(api.DefaultServerHttpsPort)).IntVar(&serverConfig.Port)
+	kingpin.Flag("port", "port for API connection").Short('p').Default(strconv.Itoa(api.DefaultServerHttpsPort)).HintOptions("443", "8443", strconv.Itoa(api.DefaultServerHttpsPort)).IntVar(&serverConfig.Port)
 	kingpin.Flag("ignore-security-check", "ignore HTTPS security check").Short('i').Default("false").BoolVar(&serverConfig.IgnoreCertificateProblem)
 	kingpin.Flag("insecure-xmpp", "use insecure connection to XMPP, need change XMPP port to 5222").Default("false").BoolVar(&serverConfig.InsecureConnect)
 	kingpin.Flag("level", "define logger level (error, warning, info, debug, trace)").Short('l').Default("error").
@@ -105,10 +105,10 @@ func (f *FinesseServerConfig) serverValid() error {
 }
 
 func (f *FinesseServerConfig) portValid() error {
-	if f.Port < 1025 || f.Port > 65535 {
-		return fmt.Errorf("finesse port os out of valid range 1024 - 65536 <%d> ", f.Port)
+	if (f.Port > 1023 && f.Port < 65536) || f.Port == 443 {
+		return nil
 	}
-	return nil
+	return fmt.Errorf("finesse port is out of valid range 1024 - 65536 or different from standard HTTPS port 443 <%d> ", f.Port)
 }
 
 func (f *FinesseServerConfig) sprint() string {
