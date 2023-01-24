@@ -146,7 +146,7 @@ func main() {
 	if serverConfig.InsecureConnect {
 		server = api.NewServerDetail(serverConfig.FinesseServer, serverConfig.Port, true, api.DefaultServerDirectXmppPort, true, api.DefaultServerTimeout)
 	} else {
-		server = api.NewServer(serverConfig.FinesseServer, serverConfig.IgnoreCertificateProblem)
+		server = api.NewServerDetail(serverConfig.FinesseServer, serverConfig.Port, serverConfig.IgnoreCertificateProblem, api.DefaultServerDirectXmppPort, true, api.DefaultServerTimeout)
 	}
 	if command == agApp.FullCommand() {
 		retCode = agentSelectOperation()
