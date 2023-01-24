@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"regexp"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 )
@@ -17,6 +18,7 @@ const (
 
 type FinesseServerConfig struct {
 	FinesseServer            string
+	Port                     int
 	Force                    bool
 	IgnoreCertificateProblem bool
 	InsecureConnect          bool
@@ -64,6 +66,7 @@ var (
 func init() {
 	kingpin.Flag("server", "finesse server name or IP address").Short('s').PlaceHolder("finesse.server.local").Default("").StringVar(&serverConfig.FinesseServer)
 	kingpin.Flag("force", "force operation").Short('f').Default("false").BoolVar(&serverConfig.Force)
+	kingpin.Flag("port", "port for API connection").Short('p').Default(strconv.Itoa(api.DefaultServerHttpsPort)).HintOptions("433", "8443", strconv.Itoa(api.DefaultServerHttpsPort)).IntVar(&serverConfig.Port)
 	kingpin.Flag("ignore-security-check", "ignore HTTPS security check").Short('i').Default("false").BoolVar(&serverConfig.IgnoreCertificateProblem)
 	kingpin.Flag("insecure-xmpp", "use insecure connection to XMPP, need change XMPP port to 5222").Default("false").BoolVar(&serverConfig.InsecureConnect)
 	kingpin.Flag("level", "define logger level (error, warning, info, debug, trace)").Short('l').Default("error").
@@ -85,6 +88,9 @@ func init() {
 
 func (f *FinesseServerConfig) Validate() error {
 	err := f.serverValid()
+	if err == nil {
+		err = f.portValid()
+	}
 	return err
 }
 
@@ -98,11 +104,18 @@ func (f *FinesseServerConfig) serverValid() error {
 	return nil
 }
 
+func (f *FinesseServerConfig) portValid() error {
+	if f.Port < 1025 || f.Port > 65535 {
+		return fmt.Errorf("finesse port os out of valid range 1024 - 65536 <%d> ", f.Port)
+	}
+	return nil
+}
+
 func (f *FinesseServerConfig) sprint() string {
 	m := errMsg{Msg: ""}
 	a := "Server setup"
 	a = fmt.Sprintf("%s\r\n\tServer                        [%s]%s", a, f.FinesseServer, m.marker(f.serverValid()))
-	a = fmt.Sprintf("%s\r\n\tPort                          [%d]", a, api.DefaultServerHttpsPort)
+	a = fmt.Sprintf("%s\r\n\tPort                          [%d]%s", a, f.Port, m.marker(f.portValid()))
 	a = fmt.Sprintf("%s\r\n\tXMPP Port                     [%d]", a, api.DefaultServerXmppPort)
 	a = fmt.Sprintf("%s\r\n\tForce                         [%t]", a, f.Force)
 	a = fmt.Sprintf("%s\r\n\tIgnore Certificate problem    [%t]", a, f.IgnoreCertificateProblem)

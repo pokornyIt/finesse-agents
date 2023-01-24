@@ -144,7 +144,7 @@ func main() {
 
 	log.Infof("Program start (version: %s, branch: %s, build date: %s", Version, Branch, BuildDate)
 	if serverConfig.InsecureConnect {
-		server = api.NewServerDetail(serverConfig.FinesseServer, api.DefaultServerHttpsPort, true, api.DefaultServerDirectXmppPort, true, api.DefaultServerTimeout)
+		server = api.NewServerDetail(serverConfig.FinesseServer, serverConfig.Port, true, api.DefaultServerDirectXmppPort, true, api.DefaultServerTimeout)
 	} else {
 		server = api.NewServer(serverConfig.FinesseServer, serverConfig.IgnoreCertificateProblem)
 	}
